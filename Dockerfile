@@ -1,3 +1,3 @@
 FROM debian:jessie
-ADD skylink
-ENTRYPOINT skylink
+ADD skylink /usr/bin/skylink
+ENTRYPOINT ["skylink"]
