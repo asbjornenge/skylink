@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run -i -t -v /home/ubuntu/skylink:/skylink -w /skylink asbjornenge/nexe ./build
+docker run -i -t -v /home/ubuntu/skylink:/skylink -w /skylink asbjornenge/nexe git pull && ./build
