@@ -1,0 +1,4 @@
+#!/bin/bash
+mv package.json pkg.json
+nexe -i index.js -o skylink
+mv pkg.json package.json
