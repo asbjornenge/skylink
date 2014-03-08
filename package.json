@@ -16,6 +16,7 @@
     "url": "https://github.com/asbjornenge/skylink/issues"
   },
   "dependencies": {
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "optimist": "~0.6.1"
   }
 }

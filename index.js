@@ -1,24 +1,26 @@
-console.log('eple')
-
 var http = require('http')
 var _    = require('lodash')
+var argv = require('optimist').argv
 
-console.log(_.map)
+console.log(argv)
 
-var options = {
-  hostname : 'www.google.com',
-  port     : 80,
-  path     : '/upload',
-  method   : 'GET'
+var validate_input = function(prop, value) {
+    console.log(prop, value);
+    return true
 };
 
-var req = http.request(options, function(res) {
-  console.log('STATUS: ' + res.statusCode);
-  console.log('HEADERS: ' + JSON.stringify(res.headers));
-  res.setEncoding('utf8');
-  res.on('data', function (chunk) {
-    // console.log('BODY: ' + chunk);
-  });
-});
+['name','target','ttl'].forEach(function(req_prop) {
+    if (!_.contains(Object.keys(argv), req_prop)) {
+        console.log('Missing required parameter: '+req_prop)
+        process.exit(1)
+    }
+    if (!validate_input(req_prop, argv[req_prop])) {
+        console.log('Invalid property: '+req_prop)
+        process.exit(1)
+    }
+})
 
-req.end()
+// var ip_pattern = new RegExp(/([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(\d{1,3}\.){3}\d{1,3}/)
+// var match_ip = '192.168.0.1'.match(ip_pattern)
+// var match_name = 'domain.com'.match(ip_pattern)
+// console.log(match_ip, match_name)

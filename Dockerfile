@@ -15,6 +15,9 @@ RUN       ./configure
 RUN       make
 RUN       make install
 
+# INSTALL NEXE
+RUN       npm install -g nexe
+
 # CLEAN UP
 WORKDIR   ..
 RUN       rm -r node-v0.10.23
