@@ -1,36 +1,58 @@
-var http = require('http')
-var _    = require('lodash')
-var argv = require('optimist').argv
+var http    = require('http')
+var _       = require('lodash')
+var argv    = require('optimist').argv
+var uuid    = require('node-uuid')
+var request = require('superagent');
 
-var arguments = {
-    name : {
-        validate : function(value) { return value.length > 0 },
-    }
+var struct = {
+    "uuid"        : uuid.v4().split('-')[0],
+    "name"        : "",
+    "version"     : "",
+    "environment" : "",
+    "region"      : "",
+    "host"        : "",
+    "port"        : 80,
+    "ttl"         : 10
 }
 
-var validate_input = function(prop, value) {
-    switch (prop) {
-        case 'name':
-            return value.length > 0
-        case 'target':
-            return value.length > 0
-        case 'ttl':
-            return typeof value === 'number' && value > 0
-    }
-};
+var data = _(_(_(struct).clone(true)).merge(argv)).pick(function(value, key) { return _.contains(Object.keys(struct), key) }).__wrapped__
 
-['name','target','ttl'].forEach(function(req_prop) {
-    if (!_.contains(Object.keys(argv), req_prop)) {
-        console.log('Missing required parameter: '+req_prop)
-        process.exit(1)
-    }
-    if (!validate_input(req_prop, argv[req_prop])) {
-        console.log('Invalid property value: '+req_prop+' '+argv[req_prop])
-        process.exit(1)
-    }
-})
+// <uuid>.<host>.<region>.<version>.<service>.<environment>.skydns.local
 
-console.log('ready to query skydns')
+var patch_loop = function(data) {
+    var loopinterval = setInterval(function() {
+        request
+            .patch('http://172.2.0.2:8080/skydns/services/'+data.uuid)
+            .send({ttl:data.ttl})
+            .end(function(error, res) {
+                console.log('patch', error, res.status)
+            })        
+    }, (data.ttl*1000)/2)
+}
+
+var query_skydns = function(data) {
+    request
+        .put('http://172.2.0.2:8080/skydns/services/'+data.uuid)
+        .send(data)
+        .end(function(error, res){
+            if (error) { console.log(error); sys.exit(1); }
+            switch (res.status) {
+                case 201:
+                    console.log('created')
+                    patch_loop(data)
+                    break
+                case 409:
+                    console.log('conflict already registered')
+                    break
+                case 400:
+                    console.log('client error / buggy data')
+                    break
+                default:
+                    console.log(res, 'Unhandled response '+res.status+'.')
+            }
+        });
+}
+query_skydns(data);
 
 // var ip_pattern = new RegExp(/([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(\d{1,3}\.){3}\d{1,3}/)
 // var match_ip = '192.168.0.1'.match(ip_pattern)
