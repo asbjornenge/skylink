@@ -1,8 +1,9 @@
-var http    = require('http')
-var _       = require('lodash')
-var argv    = require('optimist').argv
-var uuid    = require('node-uuid')
-var request = require('restler')
+var http     = require('http')
+var _        = require('lodash')
+var argv     = require('optimist').argv
+var uuid     = require('node-uuid')
+var request  = require('restler')
+var strftime = require('strftime')
 
 var struct = {
     "uuid"        : uuid.v4().split('-')[0],
@@ -26,7 +27,8 @@ var patch_loop = function(data) {
                 data : JSON.stringify({ttl:data.ttl})
             })
             .on('complete', function(d, res) {
-                console.log('patch', res.statusCode)
+                if (res.statusCode != 200) { console.log('Unhandled status code '+res.statusCode); process.exit(1); }
+                else { console.log('Patched '+data.uuid+' '+strftime('%H:%M:%S %Y', new Date())) }
             })
     }, (data.ttl*1000)/2)
 }
@@ -39,14 +41,14 @@ var query_skydns = function(data) {
         .on('complete', function(d, res){
             switch (res.statusCode) {
                 case 201:
-                    console.log('created')
+                    console.log('Created '+data.uuid+' '+strftime('%H:%M:%S %Y', new Date()))
                     patch_loop(data)
                     break
                 case 409:
-                    console.log('conflict already registered')
+                    console.log('Conflict already registered.')
                     break
                 case 400:
-                    console.log('client error / buggy data')
+                    console.log('Client error / buggy data.')
                     break
                 default:
                     console.log(res, 'Unhandled response '+res.status+'.')
