@@ -2,7 +2,7 @@ var http    = require('http')
 var _       = require('lodash')
 var argv    = require('optimist').argv
 var uuid    = require('node-uuid')
-var request = require('superagent');
+var request = require('restler')
 
 var struct = {
     "uuid"        : uuid.v4().split('-')[0],
@@ -22,21 +22,22 @@ var data = _(_(_(struct).clone(true)).merge(argv)).pick(function(value, key) { r
 var patch_loop = function(data) {
     var loopinterval = setInterval(function() {
         request
-            .patch('http://172.2.0.2:8080/skydns/services/'+data.uuid)
-            .send({ttl:data.ttl})
-            .end(function(error, res) {
-                console.log('patch', error, res.status)
-            })        
+            .patch('http://172.2.0.2:8080/skydns/services/'+data.uuid, {
+                data : JSON.stringify({ttl:data.ttl})
+            })
+            .on('complete', function(d, res) {
+                console.log('patch', res.statusCode)
+            })
     }, (data.ttl*1000)/2)
 }
 
 var query_skydns = function(data) {
     request
-        .put('http://172.2.0.2:8080/skydns/services/'+data.uuid)
-        .send(data)
-        .end(function(error, res){
-            if (error) { console.log(error); sys.exit(1); }
-            switch (res.status) {
+        .put('http://172.2.0.2:8080/skydns/services/'+data.uuid, {
+            data : JSON.stringify(data)
+        })
+        .on('complete', function(d, res){
+            switch (res.statusCode) {
                 case 201:
                     console.log('created')
                     patch_loop(data)
