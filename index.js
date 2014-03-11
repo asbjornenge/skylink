@@ -5,6 +5,8 @@ var uuid     = require('node-uuid')
 var request  = require('restler')
 var strftime = require('strftime')
 
+// <uuid>.<host>.<region>.<version>.<service>.<environment>.skydns.local
+
 var struct = {
     "uuid"        : uuid.v4().split('-')[0],
     "name"        : "",
@@ -17,13 +19,13 @@ var struct = {
 }
 
 var data = _(_(_(struct).clone(true)).merge(argv)).pick(function(value, key) { return _.contains(Object.keys(struct), key) }).__wrapped__
-
-// <uuid>.<host>.<region>.<version>.<service>.<environment>.skydns.local
+var host = _.contains(Object.keys(argv), 'skydns') ? argv['skydns'] : ( process.env.SKYDNS_HOST_8080+':'+process.env.SKYDNS_PORT_8080 )
+if (host.indexOf('undefined') >= 0) { console.log('Error: Unable to verify skydns host:port. Either pass --skydns ip:port or link the skydns container.'); process.exit(1) }
 
 var patch_loop = function(data) {
     var loopinterval = setInterval(function() {
         request
-            .patch('http://172.2.0.2:8080/skydns/services/'+data.uuid, {
+            .patch('http://'+host+'/skydns/services/'+data.uuid, {
                 data : JSON.stringify({ttl:data.ttl})
             })
             .on('complete', function(d, res) {
@@ -35,10 +37,11 @@ var patch_loop = function(data) {
 
 var query_skydns = function(data) {
     request
-        .put('http://172.2.0.2:8080/skydns/services/'+data.uuid, {
+        .put('http://'+host+'/skydns/services/'+data.uuid, {
             data : JSON.stringify(data)
         })
         .on('complete', function(d, res){
+            if (res === null) { console.log(d); process.exit(1) }
             switch (res.statusCode) {
                 case 201:
                     console.log('Created '+data.uuid+' '+strftime('%H:%M:%S %Y', new Date()))
