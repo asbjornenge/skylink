@@ -19,7 +19,7 @@ var struct = {
 }
 
 var data = _(_(_(struct).clone(true)).merge(argv)).pick(function(value, key) { return _.contains(Object.keys(struct), key) }).__wrapped__
-var host = _.contains(Object.keys(argv), 'skydns') ? argv['skydns'] : ( process.env.SKYDNS_HOST_8080+':'+process.env.SKYDNS_PORT_8080 )
+var host = _.contains(Object.keys(argv), 'skydns') ? argv['skydns'] : ( process.env.SKYDNS_PORT_8080_TCP_ADDR+':8080' )
 if (host.indexOf('undefined') >= 0) { console.log('Error: Unable to verify skydns host:port. Either pass --skydns ip:port or link the skydns container.'); process.exit(1) }
 
 var patch_loop = function(data) {
