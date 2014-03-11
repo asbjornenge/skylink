@@ -17,7 +17,7 @@ That will result in the service being registered under ***rds.test.domain***. Th
 
 ## Arguments
 
-Skydns ses the following format for it's registry:
+Skydns uses the following format for it's registry:
 
 	<uuid>.<host>.<region>.<version>.<service>.<environment>.domain
 
