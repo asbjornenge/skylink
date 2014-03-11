@@ -2,7 +2,7 @@
 
 Register static services with [skydns](https://github.com/skynetservices/skydns) / [skydock](https://github.com/crosbymichael/skydock).
 	
-Skydock is a great tool for doing DNS service discovery of your docker containers. But, it is sometimes quite handy to be able to register non-container servies into your skydns. Skylink helps you do that.
+Skydock is a great tool for doing DNS service discovery of your [docker](http://docker.io) containers. But, it is sometimes quite handy to be able to register non-container servies into your skydns. Skylink helps you do that.
 
 ## Run
 
