@@ -22,17 +22,24 @@ var data = _(_(_(struct).clone(true)).merge(argv)).pick(function(value, key) { r
 var host = _.contains(Object.keys(argv), 'skydns') ? argv['skydns'] : ( process.env.SKYDNS_PORT_8080_TCP_ADDR+':8080' )
 if (host.indexOf('undefined') >= 0) { console.log('Error: Unable to verify skydns host:port. Either pass --skydns ip:port or link the skydns container.'); process.exit(1) }
 
+var patch = function(data) {
+    request
+        .patch('http://'+host+'/skydns/services/'+data.uuid, {
+            data : JSON.stringify({ttl:data.ttl})
+        })
+        .on('complete', function(d, res) {
+            if (res.statusCode != 200) { console.log('Unhandled status code '+res.statusCode); process.exit(1); }
+            else { console.log('Patched '+data.uuid+' '+strftime('%H:%M:%S %Y', new Date())) }
+        })    
+}
+
 var patch_loop = function(data) {
+    var p_time = (data.ttl - 2)
+    var r_time = p_time >= 2 ? p_time : 2
     var loopinterval = setInterval(function() {
-        request
-            .patch('http://'+host+'/skydns/services/'+data.uuid, {
-                data : JSON.stringify({ttl:data.ttl})
-            })
-            .on('complete', function(d, res) {
-                if (res.statusCode != 200) { console.log('Unhandled status code '+res.statusCode); process.exit(1); }
-                else { console.log('Patched '+data.uuid+' '+strftime('%H:%M:%S %Y', new Date())) }
-            })
-    }, (data.ttl*1000)/2)
+        patch(data)
+    }, r_time*1000)
+    patch(data)
 }
 
 var query_skydns = function(data) {
